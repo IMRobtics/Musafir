@@ -43,7 +43,7 @@ void Navigator::Reset( nvTime now )
     m_dt = 0;
     m_lticks = m_rticks = 0;
     m_pose = m_init_pose;
-    m_heading = nvDegToRad(m_pose.heading);
+    m_heading = nvDegToRad(m_pose.heading)+M_PI_2;
     m_speed = nvMM(0.0);
     m_turn_rate = nvDEGREES(0.0);
 
@@ -86,7 +86,7 @@ bool Navigator::UpdateTicks( int16_t lticks, int16_t rticks, nvTime now )
     nvDistance s  = (sr + sl)*0.5f;
 
     // calc and update change in heading
-    nvRadians theta = (sl - sr)/m_effective_wheelbase;
+    nvRadians theta = (sr - sl)/m_effective_wheelbase;
     m_heading = nvClipRadians( m_heading + theta);
 
     // update velocities (per sec)

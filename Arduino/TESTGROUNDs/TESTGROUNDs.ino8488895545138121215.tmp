@@ -33,7 +33,7 @@ double currentHeading=0, goalHeading=0, angularVelocity=0;
 // PID (&input, &output, &setpoint, kp, ki, kd, DIRECT/REVERSE)
 PID pidL(&measuredVelL, &pwmL, &velL, 2,1,0, DIRECT);
 PID pidR(&measuredVelR, &pwmR, &velR, 2,1,0, DIRECT);
-PID pidHeading(&currentHeading, &angularVelocity, &goalHeading, 2,1,0, DIRECT);
+PID pidHeading(&currentHeading, &angularVelocity, &goalHeading, 2,0.1,0, DIRECT);
 
 boolean pidActive= false;
 
@@ -50,7 +50,7 @@ const float distThresh  = 1;
 const float angleThresh = 0.5;
 boolean turnFlag = false;
 boolean StraightFlag = false;
-const int maxVel=30;
+const int maxVel=60;
 float errorHeading =0;
          
 void setup() {
@@ -97,11 +97,11 @@ void loop() {
     debugPreviousMillis = currentMillis;
     Serial.print(goal);
     Serial.print(", ");
-    Serial.print(goalHeading);
-    Serial.print(", ");
     Serial.print(navigator.Position().x/10);
     Serial.print(", ");
     Serial.print(navigator.Position().y/10);
+    Serial.print(", ");
+    Serial.print(goalHeading);
     Serial.print(", ");
     Serial.println(navigator.Heading());
   }
@@ -113,11 +113,10 @@ void initPID(void){
   pidL.SetSampleTime(interval); // sample time for PID
   pidR.SetSampleTime(interval);
   pidL.SetOutputLimits(0,250);  // min/max PWM
-  pidR.SetOutputLimits(0,250);  // min/max PWM
 
   pidHeading.SetMode(MANUAL);
   pidHeading.SetSampleTime(interval); // sample time for PID
-  pidHeading.SetOutputLimits(0,30);
+  pidR.SetOutputLimits(0,100);
 }
 
 void computeVelocities(void){
@@ -137,9 +136,9 @@ void computeVelocities(void){
   //distance between goal and robot in y-direction
   float u_y = y_g-y;
   //angle from robot to goal. Hint: use ATAN2, u_x, u_y here.
-  goalHeading = nvRadToDeg(atan2(u_y,u_x));
+  goalHeading = atan2(u_y,u_x);
 
-  errorHeading = nvDegToRad(nvDegToRad(goalHeading)-nvDegToRad(currentHeading));
+  errorHeading = nvDegToRad(goalHeading-nvDegToRad(currentHeading));
   errorHeading = nvRadToDeg((atan2(sin(errorHeading),cos(errorHeading))));
   
   if((abs(errorHeading)>angleThresh) && (dist>distThresh)){
